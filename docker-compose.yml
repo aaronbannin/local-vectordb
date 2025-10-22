@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src:/app/src
+      - ./data:/app/data # Mount the local data directory
+    environment:
+      DATA_DIR: /app/data # Set the data directory inside the container
+      # Add any necessary environment variables here, e.g., API keys
+      # COHERE_API_KEY: your_cohere_api_key
+      PYTHONUNBUFFERED: "1" # Ensures Python output is unbuffered

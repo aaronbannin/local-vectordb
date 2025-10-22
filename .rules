@@ -1,0 +1,70 @@
+## ⚙️ Objective
+
+The goal of this project is to develop a **REST API** that allows users to **index** and **query** their documents within a **Vector Database**.
+
+A Vector Database specializes in storing and indexing vector embeddings, enabling fast retrieval and similarity searches.
+This capability is crucial for applications involving NLP, recommendation systems, and more.
+
+The REST API should be **containerized in a Docker container**.
+
+## Approach
+- Only write code. Do not write tests or documention unless explicitly prompted.
+- Only validate or run the software if specifically prompted.
+- Handle common exceptions and errors, but don't get caught up writing perfect code.
+- Validate and raise before logic; find errors early and keep implementation focused on the happy path.
+- Keep focused on the task, don't look for additional functionality.
+
+### Testing
+- When possible, use the seed data from `./src/seed.py`.
+
+### Code Quality
+- Static typing
+- FastAPI best practices; use `Request` and `Response` suffixes for types when appropriate; e.g. PUT /libraries/{library_id uses UpdateLibraryRequest
+- Pydantic schema validation
+- Code modularity & reusability
+- RESTful endpoint design
+- Proper Docker containerization
+- Testing
+- Error handling
+- Domain-driven design (DDD) structure:
+  - Separate API endpoints from services
+  - Separate services from repositories
+- Pythonic style:
+  - Early returns
+  - Use composition over inheritance
+  - Avoid hardcoding values (especially HTTP codes — use [FastAPI status codes](https://fastapi.tiangolo.com/reference/status/))
+
+---
+
+## 📘 Definitions
+
+To ensure a clear understanding, let’s define some key concepts:
+
+1. **Chunk**: A piece of text with an associated embedding and metadata.
+2. **Document**: A collection of multiple chunks and its own metadata.
+3. **Library**: A collection of documents and metadata.
+
+---
+
+## 🧩 API Requirements
+
+The API should:
+
+1. Allow users to **create, read, update, and delete (CRUD)** libraries.
+2. Allow users to CRUD documents and chunks within a library.
+3. **Index** the contents of a library.
+4. Perform **k-Nearest Neighbor (kNN)** vector searches over a selected library.
+
+## 🚫 Constraints
+
+- **Do NOT** use external vector DBs (e.g., ChromaDB, Pinecone, FAISS).
+- You **can use** `numpy` for trigonometric functions like `cos`, `sin`, etc.
+- You **do not** need to build a document processing pipeline (OCR, chunking, etc.).
+  - Using manually created chunks is fine.
+
+---
+
+## 🧱 Tech Stack
+
+- **Backend:** Python + FastAPI + Pydantic
+- **Embedding API:** [Cohere Embeddings](https://cohere.com/embeddings)
