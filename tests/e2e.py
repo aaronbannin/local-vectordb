@@ -98,7 +98,7 @@ def populate_library(library_id, df):
 def load():
     # Load dataset
     dataset = load_dataset("trec", split="train", trust_remote_code=True)
-    df = pd.DataFrame(dataset)[:100]
+    df = pd.DataFrame(dataset)[:10]
     print("Loading into database; sample:")
     print(df)
 

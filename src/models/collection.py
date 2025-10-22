@@ -3,7 +3,7 @@ import numpy as np
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Generic
+from typing import Any, Generic, override
 from uuid import UUID
 
 from src.embeddings import get_embeddings_bulk
@@ -79,22 +79,34 @@ class Collection(Generic[T]):
         Adds a new item to the collection.
         The item's created_at and updated_at are set by DataRecord's default factories.
         Also updates all indexes.
+
+        Raises:
+            Exception: If either file write or index update fails
         """
         print(f"Adding item with ID {item.id} to {self.storage_path}")
         file_path = self._get_file_path(item.id)
         print(f"Writing to file: {file_path}")
         try:
+            # Write the file first
             self._save_record(item)
             if not file_path.exists():
-                print(f"WARNING: File {file_path} was not created!")
-            else:
-                print(f"Successfully created {file_path}")
-                # Update all indexes with the new item
-                for index in self.indexes.values():
-                    index.add(item)
+                raise RuntimeError(f"File {file_path} was not created!")
+
+            # If file write succeeded, update all indexes
+            print(f"Successfully created {file_path}, updating indexes...")
+            for index in self.indexes.values():
+                index.add(item)
+                index.rebuild(self.list_all())
+
             return item
         except Exception as e:
             print(f"ERROR: Failed to add item {item.id}: {str(e)}")
+            # If file was created but index update failed, try to clean up
+            if file_path.exists():
+                try:
+                    file_path.unlink()
+                except Exception as cleanup_e:
+                    print(f"WARNING: Failed to clean up file after error: {cleanup_e}")
             raise
 
     def get(self, item_id: UUID) -> T | None:
@@ -183,6 +195,7 @@ class Collection(Generic[T]):
         if index_type not in self.indexes:
             raise KeyError(f"No index of type {index_type.value} exists")
 
+        self.indexes[index_type].rebuild(self.list_all())
         # Get the initial search results
         search_results = self.indexes[index_type].search(query, limit)
 
@@ -196,7 +209,6 @@ class Collection(Generic[T]):
                         id=result.id,
                         confidence=result.confidence,
                         content=content,
-                        # metadata=metadata,
                     )
                 )
 
@@ -212,6 +224,9 @@ class Index:
     def __init__(self):
         """Initialize the index."""
         pass
+
+    def __len__(self):
+        raise NotImplementedError()
 
     def rebuild(self, items: list[DataRecord]):
         """Rebuild the entire index from scratch using provided items."""
@@ -243,6 +258,11 @@ class BruteForceCosineSimilarityIndex(Index):
         self.embeddings: dict[UUID, np.ndarray] = {}
         super().__init__()
 
+    @override
+    def __len__(self):
+        return len(self.embeddings.keys())
+
+    @override
     def rebuild(self, items: list[DataRecord]):
         """Rebuild the entire index using embeddings from provided items."""
         self.embeddings.clear()
@@ -254,6 +274,7 @@ class BruteForceCosineSimilarityIndex(Index):
                     f"WARNING: Item {item.id} does not have a valid 'embedding' attribute."
                 )
 
+    @override
     def add(self, item: DataRecord):
         """Add a single item's embedding to the index."""
         if hasattr(item, "embedding") and isinstance(item.embedding, list):
@@ -263,11 +284,13 @@ class BruteForceCosineSimilarityIndex(Index):
                 f"WARNING: Cannot add item {item.id} to index: no valid 'embedding' attribute found."
             )
 
+    @override
     def remove(self, item_id: UUID):
         """Remove an item's embedding from the index by its ID."""
         if item_id in self.embeddings:
             del self.embeddings[item_id]
 
+    @override
     def search(self, query: str, limit: int = 5) -> SearchResults:
         """
         Performs a k-Nearest Neighbor search using cosine similarity.

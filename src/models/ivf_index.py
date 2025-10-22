@@ -1,7 +1,7 @@
 """Inverted File (IVF) Index implementation for faster approximate nearest neighbor search."""
 
 import numpy as np
-from typing import Dict, List, Optional
+from typing import override
 from uuid import UUID
 from sklearn.cluster import KMeans
 
@@ -35,12 +35,17 @@ class IVFIndex(Index):
         """
         super().__init__()
         self.n_clusters = n_clusters
-        self.kmeans: Optional[KMeans] = None
-        self.cluster_assignments: Dict[int, List[UUID]] = (
+        self.kmeans: KMeans | None = None
+        self.cluster_assignments: dict[int, list[UUID]] = (
             {}
         )  # cluster_id -> [vector_ids]
-        self.embeddings: Dict[UUID, np.ndarray] = {}  # id -> embedding vector
+        self.embeddings: dict[UUID, np.ndarray] = {}  # id -> embedding vector
 
+    @override
+    def __len__(self):
+        return len(self.embeddings.keys())
+
+    @override
     def rebuild(self, items: list[DataRecord]):
         """
         Rebuild the entire index from scratch using provided items.
@@ -81,6 +86,7 @@ class IVFIndex(Index):
             self.cluster_assignments[cluster_id].append(item_id)
             self.embeddings[item_id] = embedding
 
+    @override
     def add(self, item: DataRecord):
         """
         Add a single item to the index.
@@ -109,6 +115,7 @@ class IVFIndex(Index):
         # Store embedding
         self.embeddings[item.id] = embedding.reshape(-1)
 
+    @override
     def remove(self, item_id: UUID):
         """
         Remove a single item from the index.
@@ -128,7 +135,8 @@ class IVFIndex(Index):
         # Remove from embeddings
         del self.embeddings[item_id]
 
-    def search(self, query: str, limit: int = 5) -> List[SearchResult]:
+    @override
+    def search(self, query: str, limit: int = 5) -> list[SearchResult]:
         """
         Search the index with a query string.
         Returns list of SearchResult objects sorted by relevance.

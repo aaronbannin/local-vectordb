@@ -299,7 +299,9 @@ async def update_chunk(chunk_id: UUID, update_request: UpdateChunkRequest) -> Ch
         update_data["embedding"] = list(embeddings_result[0])
 
     chunk = chunks.update(chunk_id, update_data, Chunk)
-    if not chunk:  # This case should theoretically not be hit if existing_chunk was found, but good for robustness.
+    if (
+        not chunk
+    ):  # This case should theoretically not be hit if existing_chunk was found, but good for robustness.
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Chunk not found after update attempt",

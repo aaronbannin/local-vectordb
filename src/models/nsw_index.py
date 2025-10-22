@@ -1,5 +1,6 @@
 import numpy as np
 from uuid import UUID
+from typing import override
 
 from src.embeddings import get_embeddings_bulk
 from src.models.collection import Index
@@ -27,6 +28,11 @@ class NSWIndex(Index):
         self.ef_construction = ef_construction
         super().__init__()
 
+    @override
+    def __len__(self):
+        return len(self.embeddings.keys())
+
+    @override
     def rebuild(self, items: list[DataRecord]):
         """Rebuild the entire index from scratch using provided items."""
         self.embeddings.clear()
@@ -44,6 +50,7 @@ class NSWIndex(Index):
             )
             self.graph[item_id] = set(n.id for n in neighbors)
 
+    @override
     def add(self, item: DataRecord):
         """Add a single item's embedding to the index and connect it to neighbors."""
         if not hasattr(item, "embedding") or not isinstance(item.embedding, list):
@@ -64,6 +71,7 @@ class NSWIndex(Index):
             if neighbor.id in self.graph:
                 self.graph[neighbor.id].add(item.id)
 
+    @override
     def remove(self, item_id: UUID):
         """Remove an item from the index and update graph connections."""
         if item_id in self.embeddings:
@@ -104,6 +112,7 @@ class NSWIndex(Index):
         similarities.sort(key=lambda x: x.confidence or 0.0, reverse=True)
         return similarities[:k]
 
+    @override
     def search(self, query: str, limit: int = 5) -> SearchResults:
         """Perform graph-based nearest neighbor search."""
         if not self.embeddings:
