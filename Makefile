@@ -5,7 +5,7 @@ help:
 	@echo "Available commands:"
 	@echo "  make install   - Install dependencies"
 	@echo "  make dev       - Run development server with seed data"
-	@echo "  make test      - Run end-to-end tests with sample query"
+	@echo "  make seed      - Load data and run a sample query"
 	@echo "  make reset     - Reset the database"
 	@echo "  make load      - Load sample data into database"
 	@echo "  make query     - Run a query (usage: make query q='your query string')"
@@ -27,7 +27,7 @@ dev:
 	docker compose up --build
 
 # Run tests
-test:
+seed:
 	$(MAKE) reset
 	$(MAKE) load
 	$(MAKE) query q="What is the capital of Germany?"
@@ -39,8 +39,6 @@ load:
 	python -c "from tests.e2e import load; load()"
 
 query:
-	# @test -n "$(q)" || (echo "Error: Missing query string. Usage: make query q='your query string'" && exit 1)
-	# python -c "from tests.e2e import query; query('$(q)')"
 	python -c "from tests.e2e import query; query()"
 
 # Format code

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, TypeAlias
+from typing import TypeAlias
 from uuid import UUID
 
 
