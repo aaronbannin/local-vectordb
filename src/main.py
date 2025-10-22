@@ -215,16 +215,6 @@ async def delete_document(document_id: UUID) -> None:
         chunks.delete(chunk_id)
 
 
-# Document Endpoints associated with a Library (filtered view)
-@app.get("/libraries/{library_id}/documents", response_model=list[Document])
-async def get_documents_by_library(library_id: UUID) -> list[Document]:
-    if not libraries.exists(library_id):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Library not found"
-        )
-    return [doc for doc in documents.list_all() if doc.library_id == library_id]
-
-
 # Chunk Endpoints
 @app.post("/chunks", response_model=Chunk, status_code=status.HTTP_201_CREATED)
 async def create_chunk(chunk_request: CreateChunkRequest) -> Chunk:
@@ -323,16 +313,6 @@ async def delete_chunk(chunk_id: UUID) -> None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Chunk not found"
         )
-
-
-# Chunk Endpoints associated with a Document (filtered view)
-@app.get("/documents/{document_id}/chunks", response_model=list[Chunk])
-async def get_chunks_by_document(document_id: UUID) -> list[Chunk]:
-    if not documents.exists(document_id):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Document not found"
-        )
-    return [chunk for chunk in chunks.list_all() if chunk.document_id == document_id]
 
 
 @app.post("/query", response_model=QueryResponse, status_code=status.HTTP_200_OK)

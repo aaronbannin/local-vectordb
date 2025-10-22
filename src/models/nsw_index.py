@@ -1,8 +1,5 @@
 import numpy as np
-
-# from typing import Dict, List, Optional
 from uuid import UUID
-# from sklearn.cluster import KMeans
 
 from src.embeddings import get_embeddings_bulk
 from src.models.collection import Index
